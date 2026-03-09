@@ -1,0 +1,17 @@
+
+/* Credential Modal styles */
+#modal-credentials .modal {
+    text-align: center;
+}
+#modal-credentials p {
+    font-size: 14px;
+    color: var(--gray-500);
+}
+#modal-credentials .cred-box {
+    background: var(--gray-50);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: left;
+    margin-bottom: 20px;
+    border: 1px solid var(--gray-100);
+}

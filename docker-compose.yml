@@ -1,0 +1,106 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: clinks_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-clinks_db}
+      POSTGRES_USER: ${DB_USER:-clinks_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-clinks_password_2024}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-clinks_user} -d ${DB_NAME:-clinks_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - clinks_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: clinks_redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - clinks_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clinks_backend
+    command: /bin/sh /app/entrypoint.sh
+    volumes:
+      - ./backend:/app
+      - static_files:/app/staticfiles
+      - media_files:/app/media
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - clinks_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: clinks_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend:/usr/share/nginx/html
+      - static_files:/app/staticfiles
+      - media_files:/app/media
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - clinks_network
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: clinks_bot
+    env_file:
+      - .env
+    environment:
+      - DJANGO_API_URL=http://backend:8000/api/v1
+    depends_on:
+      backend:
+        condition: service_started
+    restart: always
+    networks:
+      - clinks_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_files:
+  media_files:
+
+
+networks:
+  clinks_network:
+    driver: bridge

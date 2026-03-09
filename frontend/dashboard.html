@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLINKO — Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="dashboard.css" />
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <img src="img/logo_icon.png" alt="CLINKO" class="sidebar-logo-img"
+                style="width:32px; height:32px; object-fit:contain; margin-right:10px;">
+            <span class="sidebar-logo-text">CLINKO</span>
+        </a>
+        <div class="clinic-info">
+            <div class="clinic-name" id="sb-clinic-name">Klinikam</div>
+            <div class="clinic-plan"><i class="fas fa-circle" style="font-size:6px"></i> <span id="sb-plan">Sinov
+                    rejimi</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section" data-i18n="nav_main">ASOSIY</div>
+            <a class="nav-item active" onclick="goPage('dashboard')"><i class="fas fa-th-large"></i> <span
+                    data-i18n="nav_dashboard">Dashboard</span></a>
+            <a class="nav-item" onclick="goPage('appointments')"><i class="fas fa-calendar-check"></i> <span
+                    data-i18n="nav_appt">Navbatlar</span><span class="nav-badge" id="badge-appt">0</span></a>
+            <a class="nav-item" onclick="goPage('doctors')"><i class="fas fa-user-md"></i> <span
+                    data-i18n="nav_doctors">Shifokorlar</span></a>
+            <a class="nav-item" onclick="goPage('patients')"><i class="fas fa-users"></i> <span
+                    data-i18n="nav_patients">Bemorlar</span></a>
+            <div class="nav-section" data-i18n="nav_manage">BOSHQARUV</div>
+            <a class="nav-item" onclick="goPage('services')"><i class="fas fa-stethoscope"></i> <span
+                    data-i18n="nav_services">Xizmatlar</span></a>
+            <a class="nav-item" onclick="goPage('staff')"><i class="fas fa-user-shield"></i> <span
+                    data-i18n="nav_staff">Xodimlar</span></a>
+            <a class="nav-item" onclick="goPage('analytics')"><i class="fas fa-chart-line"></i> <span
+                    data-i18n="nav_analytics">Analitika</span></a>
+            <a class="nav-item" onclick="goPage('bot')"><i class="fab fa-telegram"></i> <span
+                    data-i18n="nav_bot">Telegram Bot</span></a>
+            <a class="nav-item" onclick="goPage('settings')"><i class="fas fa-cog"></i> <span
+                    data-i18n="nav_settings">Sozlamalar</span></a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user" onclick="doLogout()">
+                <div class="sidebar-avatar" id="sb-avatar">A</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="sb-username">Admin</div>
+                    <div class="sidebar-user-role" data-i18n="sb_logout">Chiqish</div>
+                </div>
+                <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,0.3);font-size:14px"></i>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="topbar-title" id="page-title" data-i18n="nav_dashboard">Dashboard</div>
+            </div>
+            <div class="topbar-right">
+                <button class="btn btn-primary btn-sm" onclick="toggleQuickAdd()" id="btn-quick-add">
+                    <i class="fas fa-plus"></i> <span data-i18n="btn_add">Qo'shish</span>
+                </button>
+                <div class="quick-add-menu" id="quick-add-menu">
+                    <div class="menu-item" onclick="openModal('appt')"><i class="fas fa-calendar-plus"></i> <span
+                            data-i18n="btn_new_appt">Yangi navbat</span></div>
+                    <div class="menu-item" onclick="openModal('doctor')"><i class="fas fa-user-md"></i> <span
+                            data-i18n="btn_add_doctor">Shifokor qo'shish</span></div>
+                    <div class="menu-item" onclick="openModal('patient')"><i class="fas fa-user-plus"></i> <span
+                            data-i18n="btn_add_patient">Bemor qo'shish</span></div>
+                    <div class="menu-item" onclick="openModal('service')"><i class="fas fa-stethoscope"></i> <span
+                            data-i18n="btn_add_service">Xizmat qo'shish</span></div>
+                </div>
+
+                <div class="lang-sw">
+                    <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+                    <button class="lang-btn" onclick="setLang('ru')">RU</button>
+                    <button class="lang-btn" onclick="setLang('en')">EN</button>
+                </div>
+                <div class="icon-btn" onclick="goPage('appointments')" title="Navbatlar">
+                    <i class="fas fa-bell"></i><span class="notif-dot" id="notif-dot" style="display:none"></span>
+                </div>
+                <div class="icon-btn" onclick="location.reload()" title="Yangilash"><i class="fas fa-rotate-right"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- DASHBOARD PAGE -->
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                            <span class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> 12%</span>
+                        </div>
+                        <div class="stat-val" id="stat-appt-total">0</div>
+                        <div class="stat-label" data-i18n="stat_total_appt">Jami navbatlar</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon" style="color:var(--success)"><i class="fas fa-users"></i></div>
+                            <span class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> 8%</span>
+                        </div>
+                        <div class="stat-val" id="stat-patients">0</div>
+                        <div class="stat-label" data-i18n="stat_patients">Jami bemorlar</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon" style="color:var(--warning)"><i class="fas fa-user-md"></i></div>
+                            <span class="badge badge-green">Faol</span>
+                        </div>
+                        <div class="stat-val" id="stat-doctors">0</div>
+                        <div class="stat-label" data-i18n="stat_doctors">Shifokorlar</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon" style="color:var(--accent)"><i class="fas fa-wallet"></i></div>
+                            <span class="stat-trend trend-up">So'm</span>
+                        </div>
+                        <div class="stat-val" id="stat-revenue">0</div>
+                        <div class="stat-label" data-i18n="stat_revenue">Daromad (so'm)</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <div class="card-title"><i class="fas fa-chart-line"></i> <span
+                                    data-i18n="chart_appt">Navbatlar dinamikasi</span></div>
+                            <div class="page-actions">
+                                <select class="form-select" onchange="loadChart(this.value)">
+                                    <option value="7" data-i18n="opt_7d">7 kun</option>
+                                    <option value="30" data-i18n="opt_30d">30 kun</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" style="height: 300px; position: relative;">
+                            <canvas id="apptChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <div class="card-title"><i class="fas fa-pie-chart"></i> <span
+                                    data-i18n="chart_status">Navbat holatlari</span></div>
+                        </div>
+                        <div style="height:220px;display:flex;align-items:center;justify-content:center">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid" style="grid-template-columns: 1.5fr 1fr;">
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <div class="card-title"><i class="fas fa-clock"></i> <span data-i18n="today_appts">Bugungi
+                                    navbatlar</span></div>
+                            <button class="btn btn-outline btn-sm" onclick="goPage('appointments')"><span
+                                    data-i18n="see_all">Barchasini ko'rish</span></button>
+                        </div>
+                        <div class="table-wrap scrollable-list" style="max-height: 480px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="th_patient">Bemor</th>
+                                        <th data-i18n="th_doctor">Shifokor</th>
+                                        <th data-i18n="th_time">Vaqt</th>
+                                        <th data-i18n="th_status">Holat</th>
+                                        <th data-i18n="th_action">Amal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="today-tbody">
+                                    <tr>
+                                        <td colspan="5" class="empty"><i class="fas fa-spinner fa-spin"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <div class="card-title"><i class="fas fa-star"></i> <span data-i18n="top_doctors">Top
+                                    shifokorlar</span></div>
+                        </div>
+                        <div id="top-doctors-list">
+                            <div class="empty" style="padding:20px 0">Ma'lumotlar yuklanmoqda...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <div class="card-title"><i class="fas fa-history"></i> <span
+                                    data-i18n="recent_activity">So'nggi harakatlar</span></div>
+                        </div>
+                        <div id="recent-activity-list" class="flex flex-col gap-4 scrollable-list">
+                            <div class="empty" style="padding:40px 0">Hozircha harakatlar mavjud emas</div>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <div class="section-card-header">
+                            <div class="card-title"><i class="fas fa-tasks"></i> <span data-i18n="quick_tasks">Tezkor
+                                    vazifalar</span></div>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center gap-3 p-3"
+                                style="background:var(--gray-50);border-radius:12px">
+                                <input type="checkbox" style="width:20px;height:20px">
+                                <div style="font-size:14px;font-weight:600">Bugungi navbatlarni tasdiqlash</div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3"
+                                style="background:var(--gray-50);border-radius:12px">
+                                <input type="checkbox" style="width:20px;height:20px">
+                                <div style="font-size:14px;font-weight:600">Yangi shifokorni ro'yxatdan o'tkazish</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- APPOINTMENTS PAGE -->
+            <div class="page" id="page-appointments">
+                <div class="page-header">
+
+                    <div class="page-actions">
+                        <select class="select-sm" id="appt-status-filter" onchange="loadAppointments()"
+                            style="width:160px">
+                            <option value="" data-i18n="all">Barchasi</option>
+                            <option value="pending" data-i18n="pending">Kutilmoqda</option>
+                            <option value="confirmed" data-i18n="confirmed">Tasdiqlangan</option>
+                            <option value="completed" data-i18n="completed">Tugallangan</option>
+                            <option value="cancelled" data-i18n="cancelled">Bekor qilingan</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="openModal('appt')">
+                            <i class="fas fa-plus"></i> <span data-i18n="btn_new_appt">Yangi navbat</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_patient">Bemor</th>
+                                    <th data-i18n="th_doctor">Shifokor</th>
+                                    <th data-i18n="th_date">Sana</th>
+                                    <th data-i18n="th_time">Vaqt</th>
+                                    <th data-i18n="th_service">Xizmat</th>
+                                    <th data-i18n="th_status">Holat</th>
+                                    <th data-i18n="th_payment">To'lov</th>
+                                    <th data-i18n="th_action">Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appt-tbody">
+                                <tr>
+                                    <td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="appt-pagination"></div>
+                </div>
+            </div>
+
+            <!-- DOCTORS PAGE -->
+            <div class="page" id="page-doctors">
+                <div class="page-header">
+
+                    <div class="page-actions">
+                        <button class="btn btn-primary" onclick="openModal('doctor')">
+                            <i class="fas fa-plus"></i> <span data-i18n="btn_add_doctor">Shifokor qo'shish</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="doctors-grid"
+                    style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+            </div>
+
+            <!-- PATIENTS PAGE -->
+            <div class="page" id="page-patients">
+                <div class="page-header">
+
+                    <div class="page-actions">
+                        <input class="form-input" style="width:220px" placeholder="Qidirish..." id="patient-search"
+                            oninput="filterPatients(this.value)" />
+                        <button class="btn btn-primary" onclick="openModal('patient')">
+                            <i class="fas fa-plus"></i> <span data-i18n="btn_add_patient">Bemor qo'shish</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_name">Ism</th>
+                                    <th data-i18n="th_phone">Telefon</th>
+                                    <th data-i18n="th_dob">Tug'ilgan kun</th>
+                                    <th data-i18n="th_gender">Jins</th>
+                                    <th data-i18n="th_appts">Navbatlar</th>
+                                    <th data-i18n="th_action">Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patients-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty"><i class="fas fa-spinner fa-spin"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="patient-pagination"></div>
+                </div>
+            </div>
+
+            <!-- SERVICES PAGE -->
+            <div class="page" id="page-services">
+                <div class="page-header">
+
+                    <button class="btn btn-primary" onclick="openModal('service')"><i class="fas fa-plus"></i> <span
+                            data-i18n="btn_add_service">Xizmat qo'shish</span></button>
+                </div>
+                <div class="section-card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_name">Nomi</th>
+                                    <th data-i18n="th_duration">Davomiyligi</th>
+                                    <th data-i18n="th_price">Narxi</th>
+                                    <th data-i18n="th_status">Holat</th>
+                                    <th data-i18n="th_action">Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="services-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAFF PAGE -->
+            <div class="page" id="page-staff">
+                <div class="section-card" style="display:flex; flex-direction:column; height:100%">
+                    <div class="section-card-header">
+                        <div class="card-title"><i class="fas fa-user-tie" style="color:var(--primary)"></i> <span
+                                data-i18n="nav_staff">Xodimlar (Adminlar)</span></div>
+                        <div class="page-actions">
+                            <button class="btn btn-primary" onclick="openModal('staff')"><i class="fas fa-plus"></i>
+                                <span data-i18n="btn_add_staff">Xodim qo'shish</span></button>
+                        </div>
+                    </div>
+                    <div class="table-wrap scrollable-list" style="flex:1">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_name">Ism familiya</th>
+                                    <th>Login</th>
+                                    <th data-i18n="th_phone">Telefon</th>
+                                    <th>Rol</th>
+                                    <th style="text-align:right;">Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staff-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS PAGE -->
+            <div class="page" id="page-analytics">
+                <div class="page-header">
+
+                    <select class="select-sm" id="analytics-period" onchange="loadAnalytics()">
+                        <option value="7">7 kun</option>
+                        <option value="30" selected>30 kun</option>
+                        <option value="90">90 kun</option>
+                    </select>
+                </div>
+                <div id="analytics-stats" class="stats-grid" style="margin-bottom:24px"></div>
+                <div class="charts-row">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="chart_revenue">Daromad dinamikasi</div>
+                        </div>
+                        <div class="chart-wrapper" style="height: 300px; position: relative;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" data-i18n="top_doctors">Top shifokorlar</div>
+                        </div>
+                        <div id="analytics-top-doctors-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOT PAGE -->
+            <div class="page" id="page-bot">
+                <div class="page-header">
+
+                    <div style="font-size:13px;color:var(--gray-600)">Markazlashgan tizim orqali mijozlarni jalb qiling
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom:24px">
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <i class="fab fa-telegram" style="font-size:24px;color:#229ED9"></i>
+                            <div id="bot-status-badge" class="badge badge-gray">...</div>
+                        </div>
+                        <div class="stat-val" id="bot-users-count">0</div>
+                        <div class="stat-label" data-i18n="bot_users">Bot foydalanuvchilari</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <i class="fas fa-calendar-check" style="font-size:24px;color:var(--primary)"></i>
+                        </div>
+                        <div class="stat-val" id="bot-appt-count">0</div>
+                        <div class="stat-label" data-i18n="bot_appt">Bot orqali navbatlar</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <i class="fas fa-share-alt" style="font-size:24px;color:var(--success)"></i>
+                        </div>
+                        <div class="stat-val" id="bot-visit-count">0</div>
+                        <div class="stat-label" data-i18n="bot_visits">Profil ko'rishlar</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <i class="fas fa-star" style="font-size:24px;color:var(--warning)"></i>
+                        </div>
+                        <div class="stat-val" id="bot-rating">—</div>
+                        <div class="stat-label" data-i18n="bot_rating">O'rtacha reyting</div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="section-card" style="margin-bottom:0">
+                        <div class="section-card-header">
+                            <div class="card-title" data-i18n="share_title">Ulashing (Deep Link)</div>
+                        </div>
+                        <div class="section-card-body">
+                            <p style="font-size:13px;color:var(--gray-600);margin-bottom:12px" data-i18n="share_desc">Bu
+                                havola orqali mijozlar
+                                to'g'ridan-to'g'ri sizning klinikangiz menyusiga tushishadi.</p>
+                            <div class="form-group">
+                                <div class="flex gap-2">
+                                    <input class="form-input" id="share-link" readonly value="Yuklanmoqda..." />
+                                    <button class="btn btn-primary" onclick="copyLink()"><i
+                                            class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;margin-top:20px">
+                                <div style="flex:1;padding:15px;background:var(--gray-50);border-radius:12px;text-align:center;cursor:pointer"
+                                    onclick="downloadQR()">
+                                    <i class="fas fa-qrcode"
+                                        style="font-size:24px;display:block;margin-bottom:8px;color:var(--dark)"></i>
+                                    <span style="font-size:11px;font-weight:600">QR Kod yuklash</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-card" style="margin-bottom:0">
+                        <div class="section-card-header">
+                            <div class="card-title" data-i18n="broadcast_title">Sozlamalar</div>
+                        </div>
+                        <div class="section-card-body">
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="broadcast_label">Marketing xabari
+                                    (Broadcast)</label>
+                                <textarea class="form-input" id="broadcast-msg" rows="3"
+                                    placeholder="Barcha mijozlarga xabar yuborish..."></textarea>
+                            </div>
+                            <button class="btn btn-primary" style="width:100%;justify-content:center"
+                                onclick="sendBroadcast()"><i class="fas fa-paper-plane"></i> <span
+                                    data-i18n="broadcast_btn">Xabarni yuborish</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div class="page" id="page-settings">
+                <div class="page-header">
+
+                </div>
+                <div class="section-card" style="margin-bottom:16px">
+                    <div class="section-card-header">
+                        <div class="card-title" data-i18n="clinic_info">Klinika ma'lumotlari</div>
+                    </div>
+                    <div class="section-card-body">
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label" data-i18n="field_clinic_name">Klinika
+                                    nomi</label><input class="form-input" id="s-clinic-name" /></div>
+                            <div class="form-group"><label class="form-label"
+                                    data-i18n="field_phone">Telefon</label><input class="form-input"
+                                    id="s-clinic-phone" /></div>
+                            <div class="form-group"><label class="form-label"
+                                    data-i18n="field_city">Shahar</label><input class="form-input" id="s-clinic-city" />
+                            </div>
+                            <div class="form-group"><label class="form-label"
+                                    data-i18n="field_email">Email</label><input class="form-input" id="s-clinic-email"
+                                    type="email" /></div>
+                        </div>
+                        <div class="form-group"><label class="form-label" data-i18n="field_address">Manzil</label><input
+                                class="form-input" id="s-clinic-address" /></div>
+
+                        <div class="card-title"
+                            style="margin:20px 0 16px; font-size:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <span><i class="fas fa-map-marker-alt"></i> Geolokatsiya (Google Maps uchun)</span>
+                            <button class="btn btn-outline btn-sm" onclick="autoDetectLocation()">
+                                <i class="fas fa-location-crosshairs"></i> Hozirgi joyni olish (Auto)
+                            </button>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">Kenglik (Latitude)</label><input
+                                    class="form-input" id="s-clinic-lat" placeholder="41.311081" /></div>
+                            <div class="form-group"><label class="form-label">Uzunlik (Longitude)</label><input
+                                    class="form-input" id="s-clinic-lng" placeholder="69.240562" /></div>
+                        </div>
+
+                        <div class="card-title" style="margin:20px 0 16px; font-size:15px;"><i
+                                class="fas fa-camera"></i> Rasmlar</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Klinika Logotipi (Logo)</label>
+                                <div style="display:flex; gap:12px; align-items:center;">
+                                    <img id="s-clinic-logo-preview"
+                                        style="width:50px; height:50px; border-radius:10px; object-fit:cover; display:none; border:1.5px solid var(--border)" />
+                                    <input class="form-input" type="file" id="s-clinic-logo-file" accept="image/*"
+                                        style="flex:1" onchange="previewFile(this, 's-clinic-logo-preview')" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tashqi ko'rinish (Exterior Photo)</label>
+                                <div style="display:flex; gap:12px; align-items:center;">
+                                    <img id="s-clinic-cover-preview"
+                                        style="width:50px; height:50px; border-radius:10px; object-fit:cover; display:none; border:1.5px solid var(--border)" />
+                                    <input class="form-input" type="file" id="s-clinic-cover-file" accept="image/*"
+                                        style="flex:1" onchange="previewFile(this, 's-clinic-cover-preview')" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid" style="margin-top:20px">
+                            <div class="form-group"><label class="form-label">Ish boshlanishi</label><input
+                                    class="form-input" id="s-work-start" type="time" value="09:00" /></div>
+                            <div class="form-group"><label class="form-label">Ish tugashi</label><input
+                                    class="form-input" id="s-work-end" type="time" value="18:00" /></div>
+                        </div>
+                        <div class="flex" style="justify-content:flex-end; margin-top:24px">
+                            <button class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i> <span data-i18n="btn_save">Saqlash</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+
+    <!-- MODALS -->
+    <div class="modal-overlay" id="modal-appt">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="new_appt">Yangi navbat</div>
+                <button class="modal-close" onclick="closeModal('appt')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label" data-i18n="th_doctor">Shifokor</label><select
+                    class="form-select" id="appt-doctor-sel" onchange="loadSlots()"></select></div>
+            <div class="form-group"><label class="form-label" data-i18n="th_patient">Bemor</label><select
+                    class="form-select" id="appt-patient-sel"></select></div>
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label" data-i18n="th_date">Sana</label><input
+                        class="form-input" type="date" id="appt-date" onchange="loadSlots()" /></div>
+                <div class="form-group"><label class="form-label" data-i18n="th_time">Vaqt</label><select
+                        class="form-select" id="appt-time-sel"></select></div>
+            </div>
+            <div class="form-group"><label class="form-label" data-i18n="th_service">Xizmat</label><select
+                    class="form-select" id="appt-service-sel"></select></div>
+            <div class="form-group"><label class="form-label">Izoh</label><input class="form-input" id="appt-note"
+                    placeholder="Ixtiyoriy..." /></div>
+            <div class="flex gap-2" style="justify-content:flex-end">
+                <button class="btn btn-outline" onclick="closeModal('appt')" data-i18n="btn_cancel">Bekor</button>
+                <button class="btn btn-primary" onclick="createAppointment()"><i class="fas fa-check"></i> <span
+                        data-i18n="btn_save">Saqlash</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-doctor">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="add_doctor">Shifokor qo'shish</div>
+                <button class="modal-close" onclick="closeModal('doctor')">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Shifokor surati (Ixtiyoriy)</label>
+                <input class="form-input" id="doc-photo" type="file" accept="image/*" />
+            </div>
+
+            <div class="form-group"
+                style="padding:15px; background:var(--gray-50); border-radius:12px; margin-bottom:15px; border:1px solid #e2e8f0;">
+                <label class="form-label"
+                    style="display:flex; align-items:center; gap:8px; margin-bottom:5px; cursor:pointer;">
+                    <input type="checkbox" id="doc-create-login" style="width:16px;height:16px;">
+                    <span data-i18n="create_doc_login">Shifokor uchun "Xodim" profili ochish</span>
+                </label>
+                <p style="font-size:12px;color:var(--gray-500);margin:0" data-i18n="create_doc_login_desc">
+                    Belgilasangiz shifokor ham o'z ish paneliga kirib bemorlarni nazorat qila oladi. Login va parol
+                    o'zi generatsiya qilinadi.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label" data-i18n="field_first_name">Ism *</label><input
+                        class="form-input" id="doc-fname" /></div>
+                <div class="form-group"><label class="form-label" data-i18n="field_last_name">Familiya</label><input
+                        class="form-input" id="doc-lname" /></div>
+            </div>
+
+            <div class="form-group"><label class="form-label">Mutaxassislik *</label><input class="form-input"
+                    id="doc-specialty" placeholder="Masalan: Dermatolog" /></div>
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label" data-i18n="field_phone">Telefon</label><input
+                        class="form-input" id="doc-phone" placeholder="+998901234567" /></div>
+                <div class="form-group"><label class="form-label">Tajriba (yil)</label><input class="form-input"
+                        id="doc-exp" type="number" value="1" /></div>
+            </div>
+            <div class="form-group"><label class="form-label">Konsultatsiya narxi (so'm)</label><input
+                    class="form-input" id="doc-price" type="number" placeholder="Masalan: 200000" /></div>
+
+            <div style="font-size:14px; font-weight:700; margin-top:16px; margin-bottom:12px; color:var(--dark)">
+                Qo'shimcha ma'lumotlar</div>
+
+            <div class="form-group"><label class="form-label">Shifokor haqida (Bio)</label><textarea class="form-input"
+                    id="doc-bio" style="min-height:60px" placeholder="Qisqacha ma'lumot..."></textarea></div>
+
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label">Ta'lim</label><textarea class="form-input"
+                        id="doc-edu" style="min-height:50px" placeholder="Qaysi institutni tamomlagan..."></textarea>
+                </div>
+                <div class="form-group"><label class="form-label">Yutuqlar</label><textarea class="form-input"
+                        id="doc-achievements" style="min-height:50px"
+                        placeholder="Sertifikat yoki sovrinlar..."></textarea></div>
+            </div>
+            <div class="flex gap-2" style="justify-content:flex-end">
+                <button class="btn btn-outline" onclick="closeModal('doctor')" data-i18n="btn_cancel">Bekor</button>
+                <button class="btn btn-primary" onclick="createDoctor()"><i class="fas fa-check"></i> <span
+                        data-i18n="btn_save">Saqlash</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-doctor-profile" style="z-index:9999">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">Shifokor profili</div>
+                <button class="modal-close" onclick="closeModal('doctor-profile')">✕</button>
+            </div>
+            <div id="doctor-profile-content">
+                <!-- Data will be injected here -->
+            </div>
+            <div class="flex gap-2" style="justify-content:flex-end; margin-top: 20px;">
+                <button class="btn btn-outline" onclick="closeModal('doctor-profile')">Yopish</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-patient">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="add_patient">Bemor qo'shish</div>
+                <button class="modal-close" onclick="closeModal('patient')">✕</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label" data-i18n="field_first_name">Ism</label><input
+                        class="form-input" id="pat-fname" /></div>
+                <div class="form-group"><label class="form-label" data-i18n="field_last_name">Familiya</label><input
+                        class="form-input" id="pat-lname" /></div>
+            </div>
+            <div class="form-group"><label class="form-label" data-i18n="field_phone">Telefon</label><input
+                    class="form-input" id="pat-phone" placeholder="+998..." /></div>
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label">Tug'ilgan kun</label><input class="form-input"
+                        id="pat-dob" type="date" /></div>
+                <div class="form-group"><label class="form-label">Jins</label>
+                    <select class="form-select" id="pat-gender">
+                        <option value="male">Erkak</option>
+                        <option value="female">Ayol</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-2" style="justify-content:flex-end">
+                <button class="btn btn-outline" onclick="closeModal('patient')" data-i18n="btn_cancel">Bekor</button>
+                <button class="btn btn-primary" onclick="createPatient()"><i class="fas fa-check"></i> <span
+                        data-i18n="btn_save">Saqlash</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-service">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="add_service">Xizmat qo'shish</div>
+                <button class="modal-close" onclick="closeModal('service')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label" data-i18n="th_name">Nomi</label><input class="form-input"
+                    id="svc-name" /></div>
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label">Narxi (so'm)</label><input class="form-input"
+                        id="svc-price" type="number" /></div>
+                <div class="form-group"><label class="form-label">Davomiyligi (daqiqa)</label><input class="form-input"
+                        id="svc-duration" type="number" value="30" /></div>
+            </div>
+            <div class="form-group"><label class="form-label">Tavsif</label><input class="form-input" id="svc-desc" />
+            </div>
+            <div class="flex gap-2" style="justify-content:flex-end">
+                <button class="btn btn-outline" onclick="closeModal('service')" data-i18n="btn_cancel">Bekor</button>
+                <button class="btn btn-primary" onclick="createService()"><i class="fas fa-check"></i> <span
+                        data-i18n="btn_save">Saqlash</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAFF MODAL -->
+    <div class="modal-overlay" id="modal-staff">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="add_staff">Xodim qo'shish</div>
+                <button class="modal-close" onclick="closeModal('staff')">✕</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label" data-i18n="field_first_name">Ism</label><input
+                        class="form-input" id="stf-fname" /></div>
+                <div class="form-group"><label class="form-label" data-i18n="field_last_name">Familiya</label><input
+                        class="form-input" id="stf-lname" /></div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group"><label class="form-label" data-i18n="field_phone">Telefon</label><input
+                        class="form-input" id="stf-phone" placeholder="+998..." /></div>
+                <div class="form-group"><label class="form-label" data-i18n="field_username">Tizimga kirish
+                        (Login)</label><input class="form-input" id="stf-username" /></div>
+            </div>
+
+            <div class="form-group"><label class="form-label" data-i18n="field_password">Parol</label><input
+                    class="form-input" type="password" id="stf-password" placeholder="Min. 8 ta belgi" /></div>
+            <p style="font-size:12px;color:var(--gray-500);margin-bottom:15px"><i class="fas fa-info-circle"></i>
+                Xodim
+                (Administrator) ushbu login va parol orqali tizimga kirib, navbatlar, bemorlar va boshqa bo'limlarni
+                boshqarishi mumkin bo'ladi.</p>
+
+            <div class="flex gap-2" style="justify-content:flex-end">
+                <button class="btn btn-outline" onclick="closeModal('staff')" data-i18n="btn_cancel">Bekor</button>
+                <button class="btn btn-primary" onclick="createStaff()"><i class="fas fa-check"></i> <span
+                        data-i18n="btn_save">Saqlash</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT PASSWORD MODAL -->
+    <div class="modal-overlay" id="modal-edit-password">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Parolni o'zgartirish</div>
+                <button class="modal-close" onclick="closeModal('edit-password')">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Xodim</label>
+                <input class="form-input" id="edit-staff-name" readonly style="background:var(--gray-50);" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Login</label>
+                <input class="form-input" id="edit-staff-username" readonly style="background:var(--gray-50);" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Yangi parol</label>
+                <input class="form-input" type="password" id="edit-staff-password" placeholder="Yangi parolni kiriting (min. 8 ta belgi)" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Parolni tasdiqlash</label>
+                <input class="form-input" type="password" id="edit-staff-password-confirm" placeholder="Parolni qayta kiriting" />
+            </div>
+            <div class="flex gap-2" style="justify-content:flex-end">
+                <button class="btn btn-outline" onclick="closeModal('edit-password')">Bekor</button>
+                <button class="btn btn-primary" onclick="updateStaffPassword()">
+                    <i class="fas fa-save"></i> Saqlash
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg"></span></div>
+
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
