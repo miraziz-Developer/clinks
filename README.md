@@ -1,42 +1,47 @@
-# 🏥 CLinks.uz — Klinika SaaS Platformasi
+# 🏥 CLinks.uz — Clinic SaaS Platform
 
-O'zbekistondagi xususiy klinikalar uchun to'liq boshqaruv tizimi.
+A complete management system for private clinics in Uzbekistan.
 
-## Texnologiyalar
-- **Backend**: Django 4.2 + DRF
+## 🛠 Tech Stack
+- **Backend**: Django 4.2 + Django REST Framework
 - **Bot**: python-telegram-bot 20.x
 - **Database**: PostgreSQL 15
 - **Cache**: Redis
 - **Deploy**: Docker + Docker Compose
 - **Server**: Hetzner VPS
 
-## Loyiha Strukturasi
+## 📁 Project Structure
 ```
 CLinks_uz/
-├── backend/          # Django loyihasi
-│   ├── config/       # Asosiy sozlamalar
+├── backend/              # Django project
+│   ├── config/           # Core settings
 │   ├── apps/
-│   │   ├── clinics/  # Klinika modeli
-│   │   ├── patients/ # Bemor modeli
-│   │   ├── appointments/ # Navbat modeli
-│   │   ├── doctors/  # Shifokor modeli
-│   │   ├── payments/ # To'lov (hozircha o'chirilgan)
-│   │   └── bots/     # Telegram bot boshqaruvi
-│   └── templates/    # Admin panel shablonlar
-├── bot/              # Telegram bot
-├── nginx/            # Nginx konfiguratsiya
+│   │   ├── clinics/      # Clinic model
+│   │   ├── patients/     # Patient model
+│   │   ├── appointments/ # Appointment model
+│   │   ├── doctors/      # Doctor model
+│   │   ├── payments/     # Payments (disabled for now)
+│   │   └── bots/         # Telegram bot management
+│   └── templates/        # Admin panel templates
+├── bot/                  # Telegram bot
+├── nginx/                # Nginx configuration
 └── docker-compose.yml
 ```
 
-## Ishga tushirish
+## 🚀 Getting Started
 ```bash
 cp .env.example .env
-# .env faylini to'ldiring
+# Fill in the .env file with your credentials
 docker-compose up -d
 ```
 
-## Statuslar
-- [x] MVP qurilmoqda
-- [ ] Telegram bot
+## ✅ Roadmap
+- [x] MVP in development
+- [ ] Telegram bot integration
 - [ ] Admin panel
-- [ ] To'lov tizimi (Payme/Click)
+- [ ] Payment gateway (Payme / Click)
+
+## 📌 About
+CLinks.uz is a SaaS platform designed to help private clinics in Uzbekistan manage patients, appointments, doctors, and payments — all in one place.
+
+> Built with Django REST Framework, PostgreSQL, Redis, and Docker.
